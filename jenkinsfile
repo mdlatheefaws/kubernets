@@ -21,7 +21,6 @@ pipeline {
         sh '''
           set -e
           kubectl apply -f rs.yml
-          kubectl get rs
           kubectl get pods -l app=myapp -o wide || true
         '''
       }
