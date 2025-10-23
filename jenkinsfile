@@ -1,0 +1,33 @@
+cat > Jenkinsfile <<'EOF'
+pipeline {
+  agent any
+  environment {
+    // Path on the JENKINS SERVER (Linux), not your Windows PC
+    KUBECONFIG = '/var/lib/jenkins/.kube/config'
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Deploy rs.yml (only if it changed)') {
+      when {
+        changeset pattern: 'rs.yml', comparator: 'ANT'
+      }
+      steps {
+        sh '''
+          set -e
+          kubectl apply -f rs.yml
+          kubectl get rs
+          kubectl get pods -l app=myapp -o wide || true
+        '''
+      }
+    }
+  }
+}
+EOF
+
+

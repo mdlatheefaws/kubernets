@@ -19,3 +19,4 @@ spec:
           image: mvmc/myapp01
           ports:
             - containerPort: 80
+
