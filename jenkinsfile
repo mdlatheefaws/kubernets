@@ -1,32 +1,37 @@
-cat > Jenkinsfile <<'EOF'
 pipeline {
   agent any
   environment {
-    // Path on the JENKINS SERVER (Linux), not your Windows PC
     KUBECONFIG = '/var/lib/jenkins/.kube/config'
+    PATH = "/usr/local/bin:/usr/bin:/bin:${env.PATH}"
   }
+  options { timestamps() }
 
   stages {
     stage('Checkout') {
+      steps { checkout scm }
+    }
+
+    stage('Sanity (cluster)') {
       steps {
-        checkout scm
+        sh '''
+          set -euxo pipefail
+          kubectl config current-context || true
+          kubectl get nodes -o wide
+        '''
       }
     }
 
     stage('Deploy rs.yml (only if it changed)') {
-      when {
-        changeset pattern: 'rs.yml', comparator: 'ANT'
-      }
+      when { changeset pattern: 'rs.yml', comparator: 'ANT' }
       steps {
         sh '''
-          set -e
+          set -euxo pipefail
+          kubectl apply --dry-run=client -f rs.yml
           kubectl apply -f rs.yml
-          kubectl get pods -l app=myapp -o wide || true
+          kubectl get replicasets -A || true
+          kubectl get pods -A -l app=myapp -o wide || true
         '''
       }
     }
   }
 }
-EOF
-
-
