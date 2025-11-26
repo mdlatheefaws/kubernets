@@ -7,6 +7,6 @@ metadata:
 spec:
   containers:
     - name: static-site
-      image: mvmc/mvmc:latest   # the image your pipeline pushes
+      image: mvmc/myapp1:latest   # the image your pipeline pushes
       ports:
         - containerPort: 80
